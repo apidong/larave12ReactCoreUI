@@ -1,0 +1,58 @@
+﻿import * as React from 'react'import * as React from 'react'import * as React from 'react'
+
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+
+import DefaultLayout from '@/layouts/DefaultLayout'import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+
+import Dashboard from '@/views/dashboard/Dashboard'
+
+import Users from '@/views/users/Users'import DefaultLayout from '@/layouts/DefaultLayout'import DefaultLayout from '@/layouts/DefaultLayout'
+
+
+
+export default function App() {import Dashboard from '@/views/dashboard/Dashboard'import Dashboard from '@/views/dashboard/Dashboard'
+
+  return (
+
+    <BrowserRouter>import Users from '@/views/users/Users'import Users from '@/views/users/Users'
+
+      <Routes>
+
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+        <Route element={<DefaultLayout />}>
+
+          <Route path="/dashboard" element={<Dashboard />} />export default function App() {export default function App() {
+
+          <Route path="/users" element={<Users />} />
+
+        </Route>  return (  return (
+
+      </Routes>
+
+    </BrowserRouter>    <BrowserRouter>    <BrowserRouter>
+
+  )
+
+}      <Routes>      <Routes>
+
+
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />        <Route path="/" element={<DefaultLayout />}>
+
+        <Route element={<DefaultLayout />}>          <Route index element={<Navigate to="/dashboard" replace />} />
+
+          <Route path="/dashboard" element={<Dashboard />} />          <Route path="dashboard" element={<Dashboard />} />
+
+          <Route path="/users" element={<Users />} />          <Route path="users" element={<Users />} />
+
+        </Route>        </Route>
+
+      </Routes>      </Routes>
+
+    </BrowserRouter>    </BrowserRouter>
+
+  )  )
+
+}}
+
+
