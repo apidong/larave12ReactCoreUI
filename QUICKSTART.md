@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-## 🚀 Cara Cepat Memulai
+## 🚀 Cara Cepat Memulai (Fresh Installation)
 
 ### 1. Install Dependencies
 
@@ -38,11 +38,22 @@ Buat database baru:
 CREATE DATABASE laravel12coreui;
 ```
 
-### 4. Run Migrations
+### 4. Run Migrations & Setup Passport
 
 ```bash
+# Run all migrations (includes Passport tables and auto-creates test users)
 php artisan migrate
+
+# Install Passport encryption keys and OAuth clients
+php artisan passport:install
 ```
+
+**Important:** Migration akan otomatis membuat 2 test users:
+
+- `admin@example.com` / `password`
+- `user@example.com` / `password`
+
+Tidak perlu menjalankan seeder manual! ✅
 
 ### 5. Start Development Servers
 

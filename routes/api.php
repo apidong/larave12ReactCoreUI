@@ -2,24 +2,17 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\AuthController;
 
 // Public routes
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 
-// Protected routes
-Route::middleware('auth:sanctum')->group(function () {
+// Protected routes (using Passport)
+Route::middleware('auth:api')->group(function () {
     // Auth routes
-    Route::get('/user', function (Request $request) {
-        return response()->json($request->user());
-    });
+    Route::get('/user', [AuthController::class, 'user']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
-    Route::post('/auth/refresh', [AuthController::class, 'refresh']);
-
-    // User management routes
-    Route::apiResource('users', UserController::class);
 });
 
 // Demo/Mock routes (remove these in production)
