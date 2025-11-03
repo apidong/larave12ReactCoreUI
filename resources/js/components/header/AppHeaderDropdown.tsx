@@ -1,4 +1,4 @@
-import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   CAvatar,
   CBadge,
@@ -15,19 +15,37 @@ import {
   cilCommentSquare,
   cilEnvelopeOpen,
   cilFile,
-  cilLockLocked,
   cilSettings,
   cilTask,
   cilUser,
+  cilAccountLogout,
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
+import { useAppDispatch, useAppSelector } from '../../hooks/useAppDispatch'
+import { logout } from '../../store/slices/authSlice'
+import { authService } from '../../services/authService'
 
-export const AppHeaderDropdown: React.FC = () => {
+export const AppHeaderDropdown = () => {
+  const dispatch = useAppDispatch()
+  const navigate = useNavigate()
+  const { user } = useAppSelector((state) => state.auth)
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      dispatch(logout())
+      navigate('/login')
+    }
+  }
+
   return (
     <CDropdown variant="nav-item">
       <CDropdownToggle className="py-0 pe-0" caret={false}>
         <CAvatar color="secondary" textColor="white" size="md">
-          U
+          {user?.name?.charAt(0).toUpperCase() || 'U'}
         </CAvatar>
       </CDropdownToggle>
       <CDropdownMenu className="pt-0">
@@ -84,13 +102,13 @@ export const AppHeaderDropdown: React.FC = () => {
           </CBadge>
         </CDropdownItem>
         <CDropdownDivider />
-        <CDropdownItem href="#">
-          <CIcon icon={cilLockLocked} className="me-2" />
-          Lock Account
+        <CDropdownItem onClick={handleLogout} style={{ cursor: 'pointer' }}>
+          <CIcon icon={cilAccountLogout} className="me-2" />
+          Logout
         </CDropdownItem>
       </CDropdownMenu>
     </CDropdown>
   )
 }
 
-export default React.memo(AppHeaderDropdown)
+export default AppHeaderDropdown

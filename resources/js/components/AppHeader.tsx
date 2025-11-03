@@ -4,13 +4,14 @@ import { CContainer, CHeader, CHeaderNav, CHeaderToggler, CNavLink, CNavItem } f
 import CIcon from '@coreui/icons-react'
 import { cilBell, cilEnvelopeOpen, cilList, cilMenu } from '@coreui/icons'
 
-import { useSidebar } from '../contexts/SidebarContext'
+import { useAppDispatch } from '../hooks/useAppDispatch'
+import { toggleSidebar } from '../store/slices/sidebarSlice'
 import AppBreadcrumb from './AppBreadcrumb'
 import { AppHeaderDropdown } from './header/index'
 
 const AppHeader = () => {
   const headerRef = useRef<HTMLDivElement>(null)
-  const { sidebarShow, setSidebarShow } = useSidebar()
+  const dispatch = useAppDispatch()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,7 +27,7 @@ const AppHeader = () => {
     <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
       <CContainer className="border-bottom px-4" fluid>
         <CHeaderToggler
-          onClick={() => setSidebarShow(!sidebarShow)}
+          onClick={() => dispatch(toggleSidebar())}
           style={{ marginInlineStart: '-14px' }}
         >
           <CIcon icon={cilMenu} size="lg" />

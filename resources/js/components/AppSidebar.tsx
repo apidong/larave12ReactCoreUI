@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import {
   CCloseButton,
   CSidebar,
@@ -9,13 +9,15 @@ import {
 } from '@coreui/react'
 
 import { AppSidebarNav } from './AppSidebarNav'
-import { useSidebar } from '../contexts/SidebarContext'
+import { useAppDispatch, useAppSelector } from '../hooks/useAppDispatch'
+import { setSidebarShow, setSidebarUnfoldable } from '../store/slices/sidebarSlice'
 
 // sidebar nav config
 import navigation from '../_nav'
 
 const AppSidebar = () => {
-  const { sidebarShow, setSidebarShow, sidebarUnfoldable, setSidebarUnfoldable } = useSidebar()
+  const dispatch = useAppDispatch()
+  const { sidebarShow, sidebarUnfoldable } = useAppSelector((state) => state.sidebar)
 
   useEffect(() => {
     // Update CSS variables untuk wrapper padding
@@ -43,7 +45,7 @@ const AppSidebar = () => {
       unfoldable={sidebarUnfoldable}
       visible={sidebarShow}
       onVisibleChange={(visible) => {
-        setSidebarShow(visible)
+        dispatch(setSidebarShow(visible))
       }}
       onShow={() => {
         setSidebarShow(true)
@@ -81,14 +83,14 @@ const AppSidebar = () => {
             </text>
           </svg>
         </CSidebarBrand>
-        <CCloseButton className="d-lg-none" dark onClick={() => setSidebarShow(false)} />
+        <CCloseButton className="d-lg-none" dark onClick={() => dispatch(setSidebarShow(false))} />
       </CSidebarHeader>
       <AppSidebarNav items={navigation} />
       <CSidebarFooter className="border-top d-none d-lg-flex">
-        <CSidebarToggler onClick={() => setSidebarUnfoldable(!sidebarUnfoldable)} />
+        <CSidebarToggler onClick={() => dispatch(setSidebarUnfoldable(!sidebarUnfoldable))} />
       </CSidebarFooter>
     </CSidebar>
   )
 }
 
-export default React.memo(AppSidebar)
+export default AppSidebar
