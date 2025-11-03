@@ -8,6 +8,7 @@ This is a **full-stack admin dashboard** with Laravel backend API and React fron
 - **Frontend:** React 18 + TypeScript 5 + Vite 5
 - **UI Framework:** CoreUI React 5.4 (Free Admin Template)
 - **Authentication:** Laravel Passport (OAuth2 + JWT)
+- **Authorization:** Group-Based Access Control (GBAC) with Rules
 - **State Management:** Redux Toolkit
 - **Data Fetching:** React Query (TanStack Query)
 - **Database:** MySQL
@@ -21,25 +22,55 @@ This is a **full-stack admin dashboard** with Laravel backend API and React fron
 laravel12coreui/
 ├── app/
 │   ├── Http/Controllers/
-│   │   └── AuthController.php (Passport auth)
+│   │   ├── AuthController.php (Passport auth + permissions)
+│   │   └── Api/
+│   │       ├── UserController.php
+│   │       ├── GroupController.php
+│   │       └── RuleController.php
 │   └── Models/
-│       └── User.php (HasApiTokens trait)
+│       ├── User.php (HasApiTokens, belongs to Group)
+│       ├── Group.php (has many Rules)
+│       └── Rule.php (belongs to many Groups)
 ├── config/
 │   ├── auth.php (api guard: passport)
 │   ├── cors.php (allow all origins)
 │   └── passport.php
 ├── database/
-│   └── migrations/
-│       ├── *_create_oauth_*_table.php (Passport)
-│       └── *_add_test_users_*.php (auto-create test users)
+│   ├── migrations/
+│   │   ├── *_create_oauth_*_table.php (Passport)
+│   │   ├── *_create_groups_table.php
+│   │   ├── *_create_rules_table.php
+│   │   ├── *_create_group_rule_table.php (pivot)
+│   │   ├── *_add_group_id_to_users_table.php
+│   │   └── *_add_test_users_*.php (auto-create test users)
+│   └── seeders/
+│       └── GroupsAndRulesSeeder.php (default groups & rules)
 ├── resources/
 │   ├── js/
 │   │   ├── components/ (React components)
+│   │   │   ├── AppSidebar.tsx (filtered by permissions)
+│   │   │   ├── AppContent.tsx (route protection)
+│   │   │   ├── ProtectedRoute.tsx
+│   │   │   ├── PermissionDebugger.tsx
+│   │   │   └── Can.tsx (permission wrapper)
 │   │   ├── store/ (Redux store & slices)
 │   │   ├── hooks/ (Custom hooks: useAppDispatch, useAppSelector)
 │   │   ├── layouts/ (DefaultLayout)
-│   │   ├── services/ (authService.ts)
-│   │   ├── views/ (Dashboard, etc.)
+│   │   ├── services/
+│   │   │   ├── authService.ts (auth + permissions)
+│   │   │   ├── userService.ts
+│   │   │   ├── groupService.ts
+│   │   │   └── ruleService.ts
+│   │   ├── utils/
+│   │   │   └── permissions.ts (permission helpers)
+│   │   ├── views/
+│   │   │   ├── dashboard/
+│   │   │   ├── users/
+│   │   │   ├── groups/
+│   │   │   │   ├── Groups.tsx
+│   │   │   │   ├── GroupForm.tsx
+│   │   │   │   └── GroupRules.tsx (assign rules page)
+│   │   │   └── rules/
 │   │   ├── App.tsx
 │   │   └── main.tsx (axios interceptors)
 │   ├── scss/
@@ -47,7 +78,7 @@ laravel12coreui/
 │   └── views/
 │       └── app.blade.php
 ├── routes/
-│   ├── api.php (API endpoints)
+│   ├── api.php (API endpoints with auth:api middleware)
 │   └── web.php (SPA catch-all)
 └── storage/
     ├── oauth-private.key
@@ -63,7 +94,7 @@ laravel12coreui/
 - **ALL API routes** use `auth:api` middleware (Passport driver)
 - User model MUST have `HasApiTokens` trait from Laravel\Passport
 - Token type: **Bearer JWT**
-- Login returns: `{ user, access_token, token_type: "Bearer" }`
+- Login returns: `{ user, permissions, access_token, token_type: "Bearer" }`
 
 ### API Endpoints
 
@@ -80,7 +111,17 @@ Route::post('/auth/register', [AuthController::class, 'register']);
 Route::middleware('auth:api')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
-    // Add more protected routes here
+
+    // User management
+    Route::apiResource('users', UserController::class);
+    Route::post('users/{user}/toggle-status', [UserController::class, 'toggleStatus']);
+
+    // Group management
+    Route::apiResource('groups', GroupController::class);
+    Route::post('groups/{group}/toggle-status', [GroupController::class, 'toggleStatus']);
+
+    // Rule management
+    Route::apiResource('rules', RuleController::class);
 });
 ```
 
@@ -88,8 +129,92 @@ Route::middleware('auth:api')->group(function () {
 
 Migration auto-creates test users (no manual seeding):
 
-- `admin@example.com` / `password`
-- `user@example.com` / `password`
+- `admin@example.com` / `password` (Super Admin - all permissions)
+- `user@example.com` / `password` (Basic User - dashboard only)
+
+---
+
+## 🛡️ Authorization System (Group-Based Access Control)
+
+### Database Schema
+
+**Users Table:**
+
+```
+id | name | email | password | group_id | is_active
+```
+
+**Groups Table:**
+
+```
+id | name | description | is_active
+```
+
+**Rules Table:**
+
+```
+id | name | resource | action | description
+```
+
+**Group-Rule Pivot Table:**
+
+```
+id | group_id | rule_id
+```
+
+### Permission Model
+
+- **User** belongs to **Group**
+- **Group** has many **Rules** (via pivot)
+- **Rules** define permissions: `resource:action`
+
+### Available Actions
+
+- `create` - Create new resources
+- `read` - View/list resources
+- `update` - Edit existing resources
+- `delete` - Delete resources
+- `manage` - Full access (all actions)
+
+### Default Groups & Rules
+
+**From GroupsAndRulesSeeder:**
+
+1. **Super Admin** - All 13 rules (full system access)
+2. **Admin** - 6 rules (Users CRUD, Groups Read, Rules Read, Dashboard)
+3. **Manager** - 4 rules (Users Read/Update, Dashboard)
+4. **User** - 1 rule (Dashboard Read only)
+
+**Rules:**
+
+- `dashboard:read`
+- `users:create`, `users:read`, `users:update`, `users:delete`
+- `groups:create`, `groups:read`, `groups:update`, `groups:delete`
+- `rules:create`, `rules:read`, `rules:update`, `rules:delete`
+
+### Backend Permission Checking
+
+**Login endpoint returns permissions:**
+
+```php
+public function login(Request $request) {
+    $user = User::with(['group.rules'])->where('email', $email)->first();
+
+    $permissions = $user->group->rules->map(function ($rule) {
+        return [
+            'resource' => $rule->resource,
+            'action' => $rule->action,
+            'name' => $rule->name,
+        ];
+    });
+
+    return [
+        'user' => $user,
+        'permissions' => $permissions,
+        'access_token' => $token,
+    ];
+}
+```
 
 ---
 
@@ -170,18 +295,23 @@ axios.interceptors.response.use(
 
 **In `services/authService.ts`:**
 
-```typescript
+````typescript
 export interface LoginCredentials {
   email: string
   password: string
 }
 
 export const authService = {
+**File:** `resources/js/services/authService.ts`
+
+```typescript
+export const authService = {
   async login(credentials: LoginCredentials) {
     const response = await axios.post('/auth/login', credentials)
     if (response.data.access_token) {
       localStorage.setItem('token', response.data.access_token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
+      localStorage.setItem('permissions', JSON.stringify(response.data.permissions || []))
     }
     return response.data
   },
@@ -190,16 +320,92 @@ export const authService = {
     await axios.post('/auth/logout')
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    localStorage.removeItem('permissions')
   },
 
   getToken() {
     return localStorage.getItem('token')
   },
 
+  getPermissions() {
+    const permissions = localStorage.getItem('permissions')
+    return permissions ? JSON.parse(permissions) : []
+  },
+
+  hasPermission(resource: string, action: string) {
+    const permissions = this.getPermissions()
+    return permissions.some(
+      (p) =>
+        p.resource === resource &&
+        (p.action === action || p.action === 'manage')
+    )
+  },
+
   isAuthenticated() {
     return !!localStorage.getItem('token')
   },
 }
+````
+
+### Permission Utilities
+
+**File:** `resources/js/utils/permissions.ts`
+
+```typescript
+import { authService } from '../services/authService'
+
+export const hasPermission = (resource: string, action: string): boolean => {
+  return authService.hasPermission(resource, action)
+}
+
+export const canAccessRoute = (path: string): boolean => {
+  const resource = getResourceFromPath(path)
+  if (!resource) return true
+  return hasPermission(resource, 'read') || hasPermission(resource, 'manage')
+}
+
+export const filterNavByPermissions = (navItems: any[]): any[] => {
+  return navItems
+    .map((item) => {
+      if (item.items && Array.isArray(item.items)) {
+        const filteredItems = filterNavByPermissions(item.items)
+        if (filteredItems.length === 0) return null
+        return { ...item, items: filteredItems }
+      }
+      if (item.to) {
+        const canAccess = canAccessRoute(item.to)
+        return canAccess ? item : null
+      }
+      return item
+    })
+    .filter(Boolean)
+}
+```
+
+### Permission Wrapper Component
+
+**File:** `resources/js/components/Can.tsx`
+
+```typescript
+interface CanProps {
+  perform: string // Format: "resource:action"
+  children: React.ReactNode
+  fallback?: React.ReactNode
+}
+
+const Can = ({ perform, children, fallback = null }: CanProps) => {
+  const [resource, actionsStr] = perform.split(':')
+  const actions = actionsStr.split('|')
+
+  const hasAccess = actions.some((action) => hasPermission(resource.trim(), action.trim()))
+
+  return hasAccess ? <>{children}</> : <>{fallback}</>
+}
+
+// Usage:
+;<Can perform="users:create">
+  <CButton>Add User</CButton>
+</Can>
 ```
 
 ---

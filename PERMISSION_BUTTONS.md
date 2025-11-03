@@ -4,15 +4,16 @@
 
 ### Users Page (`/users`)
 
-| Button/Action | Required Permission | Notes |
-|--------------|-------------------|-------|
-| **Add User** button | `users:create` | Header button to create new user |
-| **Edit** button (pencil) | `users:update` | Edit user details |
-| **Toggle Status** button | `users:update` | Activate/Deactivate user |
-| **Reset Password** button | `users:update` | Reset user password |
-| **Delete** button (trash) | `users:delete` | Delete user |
+| Button/Action             | Required Permission | Notes                            |
+| ------------------------- | ------------------- | -------------------------------- |
+| **Add User** button       | `users:create`      | Header button to create new user |
+| **Edit** button (pencil)  | `users:update`      | Edit user details                |
+| **Toggle Status** button  | `users:update`      | Activate/Deactivate user         |
+| **Reset Password** button | `users:update`      | Reset user password              |
+| **Delete** button (trash) | `users:delete`      | Delete user                      |
 
 **Access Requirements:**
+
 - Page access: `users:read`
 - View user list: `users:read`
 
@@ -20,15 +21,16 @@
 
 ### Groups Page (`/groups`)
 
-| Button/Action | Required Permission | Notes |
-|--------------|-------------------|-------|
-| **Add Group** button | `groups:create` | Header button to create new group |
-| **Assign Rules** button (shield) | `groups:update` | Navigate to assign rules page |
-| **Edit** button (pencil) | `groups:update` | Edit group details |
-| **Toggle Status** button | `groups:update` | Activate/Deactivate group |
-| **Delete** button (trash) | `groups:delete` | Delete group |
+| Button/Action                    | Required Permission | Notes                             |
+| -------------------------------- | ------------------- | --------------------------------- |
+| **Add Group** button             | `groups:create`     | Header button to create new group |
+| **Assign Rules** button (shield) | `groups:update`     | Navigate to assign rules page     |
+| **Edit** button (pencil)         | `groups:update`     | Edit group details                |
+| **Toggle Status** button         | `groups:update`     | Activate/Deactivate group         |
+| **Delete** button (trash)        | `groups:delete`     | Delete group                      |
 
 **Access Requirements:**
+
 - Page access: `groups:read`
 - View group list: `groups:read`
 
@@ -36,13 +38,14 @@
 
 ### Group Rules Page (`/groups/:id/rules`)
 
-| Button/Action | Required Permission | Notes |
-|--------------|-------------------|-------|
-| **Page Access** | `groups:update` | Entire page requires update permission |
-| **Select Rules** checkboxes | `groups:update` | Select/deselect rules |
-| **Save Rules** button | `groups:update` | Save rule assignments |
+| Button/Action               | Required Permission | Notes                                  |
+| --------------------------- | ------------------- | -------------------------------------- |
+| **Page Access**             | `groups:update`     | Entire page requires update permission |
+| **Select Rules** checkboxes | `groups:update`     | Select/deselect rules                  |
+| **Save Rules** button       | `groups:update`     | Save rule assignments                  |
 
 **Access Requirements:**
+
 - Page access: `groups:update`
 - Must have update permission to view and use this page
 
@@ -50,11 +53,12 @@
 
 ### Rules Page (`/rules`)
 
-| Button/Action | Required Permission | Notes |
-|--------------|-------------------|-------|
-| **Edit Description** button | `rules:update` | Only description can be edited |
+| Button/Action               | Required Permission | Notes                          |
+| --------------------------- | ------------------- | ------------------------------ |
+| **Edit Description** button | `rules:update`      | Only description can be edited |
 
 **Access Requirements:**
+
 - Page access: `rules:read`
 - View rules list: `rules:read`
 - Edit description: `rules:update`
@@ -67,33 +71,37 @@
 
 ### Available Actions
 
-| Action | Description | Usage |
-|--------|-------------|-------|
-| `create` | Create new resources | Add User, Add Group buttons |
-| `read` | View/list resources | Page access, view tables |
-| `update` | Edit existing resources | Edit, Toggle, Assign Rules |
-| `delete` | Delete resources | Delete buttons |
-| `manage` | Full access (all actions) | Admin/Super Admin level |
+| Action   | Description               | Usage                       |
+| -------- | ------------------------- | --------------------------- |
+| `create` | Create new resources      | Add User, Add Group buttons |
+| `read`   | View/list resources       | Page access, view tables    |
+| `update` | Edit existing resources   | Edit, Toggle, Assign Rules  |
+| `delete` | Delete resources          | Delete buttons              |
+| `manage` | Full access (all actions) | Admin/Super Admin level     |
 
 ---
 
 ## Permission Examples by Group
 
 ### Super Admin
+
 ```javascript
 permissions: [
   { resource: 'dashboard', action: 'read' },
-  { resource: 'users', action: 'manage' },      // All user actions
-  { resource: 'groups', action: 'manage' },     // All group actions
-  { resource: 'rules', action: 'manage' },      // All rule actions
+  { resource: 'users', action: 'manage' }, // All user actions
+  { resource: 'groups', action: 'manage' }, // All group actions
+  { resource: 'rules', action: 'manage' }, // All rule actions
 ]
 ```
+
 **Can do:**
+
 - ✅ Everything (create, read, update, delete all resources)
 
 ---
 
 ### Admin
+
 ```javascript
 permissions: [
   { resource: 'dashboard', action: 'read' },
@@ -104,7 +112,9 @@ permissions: [
   { resource: 'rules', action: 'read' },
 ]
 ```
+
 **Can do:**
+
 - ✅ View dashboard
 - ✅ Create, view, edit users (but cannot delete)
 - ✅ View groups and rules
@@ -114,6 +124,7 @@ permissions: [
 ---
 
 ### Manager
+
 ```javascript
 permissions: [
   { resource: 'dashboard', action: 'read' },
@@ -121,7 +132,9 @@ permissions: [
   { resource: 'users', action: 'update' },
 ]
 ```
+
 **Can do:**
+
 - ✅ View dashboard
 - ✅ View and edit users
 - ❌ Cannot create/delete users
@@ -130,12 +143,13 @@ permissions: [
 ---
 
 ### User
+
 ```javascript
-permissions: [
-  { resource: 'dashboard', action: 'read' },
-]
+permissions: [{ resource: 'dashboard', action: 'read' }]
 ```
+
 **Can do:**
+
 - ✅ View dashboard only
 - ❌ Cannot access any management features
 
@@ -146,12 +160,15 @@ permissions: [
 ### When Permission is Missing
 
 **Button Hidden:**
+
 ```tsx
-{hasPermission('users', 'create') && (
-  <CButton color="primary" onClick={handleCreate}>
-    Add User
-  </CButton>
-)}
+{
+  hasPermission('users', 'create') && (
+    <CButton color="primary" onClick={handleCreate}>
+      Add User
+    </CButton>
+  )
+}
 ```
 
 **Result:** If user doesn't have `users:create` permission, the "Add User" button will not be displayed at all.
@@ -161,6 +178,7 @@ permissions: [
 ### When Page Access is Denied
 
 **Route Protection:**
+
 ```tsx
 // AppContent.tsx
 const hasAccess = canAccessRoute(route.path)
@@ -168,9 +186,7 @@ const hasAccess = canAccessRoute(route.path)
 return hasAccess ? (
   <route.element />
 ) : (
-  <CAlert color="danger">
-    Access Denied - You don't have permission to access this page.
-  </CAlert>
+  <CAlert color="danger">Access Denied - You don't have permission to access this page.</CAlert>
 )
 ```
 
@@ -181,6 +197,7 @@ return hasAccess ? (
 ### When Navigation Item Should Hide
 
 **Sidebar Filter:**
+
 ```tsx
 // AppSidebar.tsx
 const filteredNavigation = useMemo(() => {
@@ -197,9 +214,11 @@ const filteredNavigation = useMemo(() => {
 ### Test Scenarios
 
 #### Scenario 1: User with Limited Permissions
+
 **Login as:** `user@example.com` (Group: User)
 
 **Expected Behavior:**
+
 - ✅ Dashboard visible in sidebar
 - ✅ Can view dashboard
 - ❌ Management menu not visible
@@ -209,7 +228,9 @@ const filteredNavigation = useMemo(() => {
 ---
 
 #### Scenario 2: Manager with User Management Only
+
 **Create user with permissions:**
+
 ```javascript
 permissions: [
   { resource: 'dashboard', action: 'read' },
@@ -219,6 +240,7 @@ permissions: [
 ```
 
 **Expected Behavior:**
+
 - ✅ Can access `/users` page
 - ✅ Can see user list
 - ✅ Can see Edit, Toggle, Reset Password buttons
@@ -229,7 +251,9 @@ permissions: [
 ---
 
 #### Scenario 3: Admin with Full User Access but Read-Only Groups
+
 **Permissions:**
+
 ```javascript
 permissions: [
   { resource: 'users', action: 'manage' },
@@ -238,6 +262,7 @@ permissions: [
 ```
 
 **Expected Behavior:**
+
 - ✅ All user buttons visible (Add, Edit, Delete, etc.)
 - ✅ Can access `/groups` page
 - ✅ Can see groups list
@@ -258,13 +283,13 @@ permissions: [
 public function handle($request, Closure $next, $resource, $action)
 {
     $user = $request->user();
-    
+
     if (!$user->hasPermission($resource, $action)) {
         return response()->json([
             'message' => 'Unauthorized'
         ], 403);
     }
-    
+
     return $next($request);
 }
 ```
@@ -297,6 +322,7 @@ Route::middleware(['auth:api', 'permission:users,delete'])
 ### Best Practices
 
 ✅ **Do:**
+
 - Use `hasPermission(resource, action)` for specific action checks
 - Use `canAccessRoute(path)` for page-level checks
 - Hide buttons when user lacks permission
@@ -304,6 +330,7 @@ Route::middleware(['auth:api', 'permission:users,delete'])
 - Validate permissions on backend (CRITICAL)
 
 ❌ **Don't:**
+
 - Rely only on frontend checks (security risk)
 - Show disabled buttons (confusing for users)
 - Assume frontend checks are secure
@@ -315,14 +342,14 @@ Route::middleware(['auth:api', 'permission:users,delete'])
 
 ```typescript
 // Check specific permission
-hasPermission('users', 'create')  // Can create users?
-hasPermission('users', 'update')  // Can edit users?
-hasPermission('users', 'delete')  // Can delete users?
+hasPermission('users', 'create') // Can create users?
+hasPermission('users', 'update') // Can edit users?
+hasPermission('users', 'delete') // Can delete users?
 
 // Check page access (requires at least 'read')
-canAccessRoute('/users')   // Can access users page?
-canAccessRoute('/groups')  // Can access groups page?
+canAccessRoute('/users') // Can access users page?
+canAccessRoute('/groups') // Can access groups page?
 
 // Check any access to resource
-canAccess('users')  // Has any permission for users?
+canAccess('users') // Has any permission for users?
 ```
