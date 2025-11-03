@@ -7,6 +7,13 @@ export interface User {
   role: string
   is_active: boolean
   email_verified_at?: string | null
+  group_id?: number | null
+  group?: {
+    id: number
+    name: string
+    description?: string
+    is_active: boolean
+  }
   created_at?: string
   updated_at?: string
 }
@@ -17,6 +24,7 @@ export interface UserFormData {
   password?: string
   role: string
   is_active?: boolean
+  group_id?: number | null
 }
 
 export interface PaginatedUsers {

@@ -49,6 +49,19 @@ body {
   }
 }
 
+// Indent submenu items
+.sidebar-nav .nav-group .nav-group-items {
+  padding-left: 1rem;
+
+  .nav-link {
+    padding-left: 2rem;
+
+    .nav-icon {
+      margin-left: 0.5rem;
+    }
+  }
+}
+
 .header > .container-fluid + .container-fluid {
   min-height: 3rem;
 }

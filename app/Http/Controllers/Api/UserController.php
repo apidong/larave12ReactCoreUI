@@ -20,7 +20,7 @@ class UserController extends Controller
         $perPage = $request->input('per_page', 10);
         $search = $request->input('search');
 
-        $query = User::query();
+        $query = User::with('group');
 
         // Search functionality
         if ($search) {
@@ -51,6 +51,7 @@ class UserController extends Controller
             'password' => 'required|string|min:8',
             'role' => 'required|in:admin,user',
             'is_active' => 'sometimes|boolean',
+            'group_id' => 'nullable|exists:groups,id',
         ]);
 
         $user = User::create([
@@ -59,7 +60,10 @@ class UserController extends Controller
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
             'is_active' => $validated['is_active'] ?? true,
+            'group_id' => $validated['group_id'] ?? null,
         ]);
+
+        $user->load('group');
 
         return response()->json([
             'message' => 'User created successfully',
@@ -72,6 +76,7 @@ class UserController extends Controller
      */
     public function show(User $user): JsonResponse
     {
+        $user->load('group');
         return response()->json($user);
     }
 
@@ -91,6 +96,7 @@ class UserController extends Controller
             'password' => 'sometimes|nullable|string|min:8',
             'role' => 'sometimes|required|in:admin,user',
             'is_active' => 'sometimes|boolean',
+            'group_id' => 'nullable|exists:groups,id',
         ]);
 
         // Only hash password if provided
@@ -101,6 +107,7 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+        $user->load('group');
 
         return response()->json([
             'message' => 'User updated successfully',
@@ -147,6 +154,7 @@ class UserController extends Controller
 
         $user->is_active = !$user->is_active;
         $user->save();
+        $user->load('group');
 
         return response()->json([
             'message' => $user->is_active

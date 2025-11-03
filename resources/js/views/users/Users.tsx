@@ -228,6 +228,7 @@ const Users = () => {
                       <CTableHeaderCell>#</CTableHeaderCell>
                       <CTableHeaderCell>Name</CTableHeaderCell>
                       <CTableHeaderCell>Email</CTableHeaderCell>
+                      <CTableHeaderCell>Group</CTableHeaderCell>
                       <CTableHeaderCell>Role</CTableHeaderCell>
                       <CTableHeaderCell>Status</CTableHeaderCell>
                       <CTableHeaderCell>Actions</CTableHeaderCell>
@@ -236,7 +237,7 @@ const Users = () => {
                   <CTableBody>
                     {users.length === 0 ? (
                       <CTableRow>
-                        <CTableDataCell colSpan={6} className="text-center">
+                        <CTableDataCell colSpan={7} className="text-center">
                           No users found
                         </CTableDataCell>
                       </CTableRow>
@@ -246,6 +247,13 @@ const Users = () => {
                           <CTableHeaderCell>{index + 1}</CTableHeaderCell>
                           <CTableDataCell>{user.name}</CTableDataCell>
                           <CTableDataCell>{user.email}</CTableDataCell>
+                          <CTableDataCell>
+                            {user.group ? (
+                              <CBadge color="primary">{user.group.name}</CBadge>
+                            ) : (
+                              <span className="text-muted">No Group</span>
+                            )}
+                          </CTableDataCell>
                           <CTableDataCell>
                             <CBadge color={user.role === 'admin' ? 'danger' : 'info'}>
                               {user.role}

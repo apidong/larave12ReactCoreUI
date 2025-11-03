@@ -15,6 +15,7 @@ import {
   CAlert,
 } from '@coreui/react'
 import { User, UserFormData } from '../../services/userService'
+import { groupService, Group } from '../../services/groupService'
 
 interface UserFormProps {
   visible: boolean
@@ -30,12 +31,18 @@ const UserForm = ({ visible, onClose, onSubmit, user }: UserFormProps) => {
     password: '',
     role: 'user',
     is_active: true,
+    group_id: null,
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [groups, setGroups] = useState<Group[]>([])
+  const [loadingGroups, setLoadingGroups] = useState(false)
 
+  // Fetch groups when modal opens
   useEffect(() => {
     if (visible) {
+      fetchGroups()
+      
       if (user) {
         setFormData({
           name: user.name,
@@ -43,6 +50,7 @@ const UserForm = ({ visible, onClose, onSubmit, user }: UserFormProps) => {
           password: '',
           role: user.role,
           is_active: user.is_active,
+          group_id: user.group_id || null,
         })
       } else {
         setFormData({
@@ -51,11 +59,26 @@ const UserForm = ({ visible, onClose, onSubmit, user }: UserFormProps) => {
           password: '',
           role: 'user',
           is_active: true,
+          group_id: null,
         })
       }
       setError('')
     }
   }, [visible, user])
+
+  const fetchGroups = async () => {
+    setLoadingGroups(true)
+    try {
+      // Fetch all active groups (no pagination, no search)
+      const response = await groupService.getGroups(1, 100, '')
+      setGroups(response.data.filter((g) => g.is_active))
+    } catch (err) {
+      console.error('Failed to fetch groups:', err)
+      setGroups([])
+    } finally {
+      setLoadingGroups(false)
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -85,6 +108,7 @@ const UserForm = ({ visible, onClose, onSubmit, user }: UserFormProps) => {
         email: formData.email,
         role: formData.role,
         is_active: formData.is_active,
+        group_id: formData.group_id,
       }
 
       if (formData.password) {
@@ -148,17 +172,25 @@ const UserForm = ({ visible, onClose, onSubmit, user }: UserFormProps) => {
             />
           </div>
           <div className="mb-3">
-            <CFormLabel htmlFor="role">Role *</CFormLabel>
+            <CFormLabel htmlFor="group_id">Role (Group)</CFormLabel>
             <CFormSelect
-              id="role"
-              name="role"
-              value={formData.role}
+              id="group_id"
+              name="group_id"
+              value={formData.group_id || ''}
               onChange={handleChange}
-              required
+              disabled={loadingGroups}
             >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
+              <option value="">-- No Group --</option>
+              {groups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
             </CFormSelect>
+            {loadingGroups && <small className="text-muted">Loading groups...</small>}
+            {!loadingGroups && groups.length === 0 && (
+              <small className="text-muted">No active groups available</small>
+            )}
           </div>
           <div className="mb-3">
             <CFormCheck
