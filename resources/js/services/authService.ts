@@ -19,13 +19,27 @@ export interface User {
   name: string
   email: string
   email_verified_at?: string
+  group_id?: number | null
+  group?: {
+    id: number
+    name: string
+    description?: string
+    is_active: boolean
+  }
   created_at?: string
   updated_at?: string
+}
+
+export interface Permission {
+  resource: string
+  action: string
+  name: string
 }
 
 export interface AuthResponse {
   message: string
   user: User
+  permissions: Permission[]
   access_token: string
   token_type: string
 }
@@ -36,6 +50,7 @@ export const authService = {
     if (response.data.access_token) {
       localStorage.setItem('token', response.data.access_token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
+      localStorage.setItem('permissions', JSON.stringify(response.data.permissions || []))
     }
     return response.data
   },
@@ -45,6 +60,7 @@ export const authService = {
     if (response.data.access_token) {
       localStorage.setItem('token', response.data.access_token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
+      localStorage.setItem('permissions', JSON.stringify(response.data.permissions || []))
     }
     return response.data
   },
@@ -66,13 +82,18 @@ export const authService = {
     }
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    localStorage.removeItem('permissions')
   },
 
   async getUser(): Promise<User> {
     const token = localStorage.getItem('token')
-    const response = await axios.get<{ user: User }>(`${API_URL}/user`, {
+    const response = await axios.get<{ user: User; permissions: Permission[] }>(`${API_URL}/user`, {
       headers: { Authorization: `Bearer ${token}` },
     })
+    // Update permissions in localStorage
+    if (response.data.permissions) {
+      localStorage.setItem('permissions', JSON.stringify(response.data.permissions))
+    }
     return response.data.user
   },
 
@@ -83,6 +104,23 @@ export const authService = {
   getCurrentUser(): User | null {
     const user = localStorage.getItem('user')
     return user ? JSON.parse(user) : null
+  },
+
+  getPermissions(): Permission[] {
+    const permissions = localStorage.getItem('permissions')
+    return permissions ? JSON.parse(permissions) : []
+  },
+
+  hasPermission(resource: string, action: string): boolean {
+    const permissions = this.getPermissions()
+    return permissions.some(
+      (p) => p.resource === resource && (p.action === action || p.action === 'manage') // 'manage' grants all actions
+    )
+  },
+
+  canAccess(resource: string): boolean {
+    const permissions = this.getPermissions()
+    return permissions.some((p) => p.resource === resource)
   },
 
   isAuthenticated(): boolean {

@@ -22,6 +22,7 @@ import CIcon from '@coreui/icons-react'
 import { cilPencil, cilSearch } from '@coreui/icons'
 import { ruleService, Rule, RuleFormData } from '../../services/ruleService'
 import RuleForm from './RuleForm'
+import { hasPermission } from '../../utils/permissions'
 
 const Rules = () => {
   const [rules, setRules] = useState<Rule[]>([])
@@ -164,16 +165,18 @@ const Rules = () => {
                             <CBadge color="info">{rule.groups_count || 0}</CBadge>
                           </CTableDataCell>
                           <CTableDataCell>
-                            <CButton
-                              color="info"
-                              variant="ghost"
-                              size="sm"
-                              className="me-2"
-                              onClick={() => handleEdit(rule)}
-                              title="Edit Deskripsi"
-                            >
-                              <CIcon icon={cilPencil} />
-                            </CButton>
+                            {hasPermission('rules', 'update') && (
+                              <CButton
+                                color="info"
+                                variant="ghost"
+                                size="sm"
+                                className="me-2"
+                                onClick={() => handleEdit(rule)}
+                                title="Edit Deskripsi"
+                              >
+                                <CIcon icon={cilPencil} />
+                              </CButton>
+                            )}
                           </CTableDataCell>
                         </CTableRow>
                       ))

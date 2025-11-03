@@ -35,6 +35,7 @@ import {
 } from '@coreui/icons'
 import { userService, User, UserFormData } from '../../services/userService'
 import UserForm from './UserForm'
+import { hasPermission } from '../../utils/permissions'
 
 const Users = () => {
   const [users, setUsers] = useState<User[]>([])
@@ -181,10 +182,12 @@ const Users = () => {
           <CCard className="mb-4">
             <CCardHeader className="d-flex justify-content-between align-items-center">
               <strong>User Management</strong>
-              <CButton color="primary" onClick={handleCreate}>
-                <CIcon icon={cilUserPlus} className="me-2" />
-                Add User
-              </CButton>
+              {hasPermission('users', 'create') && (
+                <CButton color="primary" onClick={handleCreate}>
+                  <CIcon icon={cilUserPlus} className="me-2" />
+                  Add User
+                </CButton>
+              )}
             </CCardHeader>
             <CCardBody>
               {/* Alerts */}
@@ -229,7 +232,7 @@ const Users = () => {
                       <CTableHeaderCell>Name</CTableHeaderCell>
                       <CTableHeaderCell>Email</CTableHeaderCell>
                       <CTableHeaderCell>Group</CTableHeaderCell>
-                      <CTableHeaderCell>Role</CTableHeaderCell>
+
                       <CTableHeaderCell>Status</CTableHeaderCell>
                       <CTableHeaderCell>Actions</CTableHeaderCell>
                     </CTableRow>
@@ -254,57 +257,61 @@ const Users = () => {
                               <span className="text-muted">No Group</span>
                             )}
                           </CTableDataCell>
-                          <CTableDataCell>
-                            <CBadge color={user.role === 'admin' ? 'danger' : 'info'}>
-                              {user.role}
-                            </CBadge>
-                          </CTableDataCell>
+
                           <CTableDataCell>
                             <CBadge color={user.is_active ? 'success' : 'secondary'}>
                               {user.is_active ? 'Active' : 'Inactive'}
                             </CBadge>
                           </CTableDataCell>
                           <CTableDataCell>
-                            <CButton
-                              color="info"
-                              variant="ghost"
-                              size="sm"
-                              className="me-2"
-                              onClick={() => handleEdit(user)}
-                              title="Edit User"
-                            >
-                              <CIcon icon={cilPencil} />
-                            </CButton>
-                            <CButton
-                              color={user.is_active ? 'secondary' : 'success'}
-                              variant="ghost"
-                              size="sm"
-                              className="me-2"
-                              onClick={() => handleToggleStatus(user)}
-                              disabled={toggling === user.id}
-                              title={user.is_active ? 'Deactivate User' : 'Activate User'}
-                            >
-                              <CIcon icon={user.is_active ? cilXCircle : cilCheckCircle} />
-                            </CButton>
-                            <CButton
-                              color="warning"
-                              variant="ghost"
-                              size="sm"
-                              className="me-2"
-                              onClick={() => handleResetPasswordConfirm(user)}
-                              title="Reset Password"
-                            >
-                              <CIcon icon={cilLockLocked} />
-                            </CButton>
-                            <CButton
-                              color="danger"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteConfirm(user)}
-                              title="Delete User"
-                            >
-                              <CIcon icon={cilTrash} />
-                            </CButton>
+                            {hasPermission('users', 'update') && (
+                              <CButton
+                                color="info"
+                                variant="ghost"
+                                size="sm"
+                                className="me-2"
+                                onClick={() => handleEdit(user)}
+                                title="Edit User"
+                              >
+                                <CIcon icon={cilPencil} />
+                              </CButton>
+                            )}
+                            {hasPermission('users', 'update') && (
+                              <CButton
+                                color={user.is_active ? 'secondary' : 'success'}
+                                variant="ghost"
+                                size="sm"
+                                className="me-2"
+                                onClick={() => handleToggleStatus(user)}
+                                disabled={toggling === user.id}
+                                title={user.is_active ? 'Deactivate User' : 'Activate User'}
+                              >
+                                <CIcon icon={user.is_active ? cilXCircle : cilCheckCircle} />
+                              </CButton>
+                            )}
+                            {hasPermission('users', 'update') && (
+                              <CButton
+                                color="warning"
+                                variant="ghost"
+                                size="sm"
+                                className="me-2"
+                                onClick={() => handleResetPasswordConfirm(user)}
+                                title="Reset Password"
+                              >
+                                <CIcon icon={cilLockLocked} />
+                              </CButton>
+                            )}
+                            {hasPermission('users', 'delete') && (
+                              <CButton
+                                color="danger"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteConfirm(user)}
+                                title="Delete User"
+                              >
+                                <CIcon icon={cilTrash} />
+                              </CButton>
+                            )}
                           </CTableDataCell>
                         </CTableRow>
                       ))

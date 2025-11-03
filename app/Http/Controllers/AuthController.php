@@ -46,7 +46,7 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::with(['group.rules'])->where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
@@ -54,11 +54,31 @@ class AuthController extends Controller
             ]);
         }
 
+        // Check if user is active
+        if (!$user->is_active) {
+            throw ValidationException::withMessages([
+                'email' => ['Your account has been deactivated. Please contact administrator.'],
+            ]);
+        }
+
         $token = $user->createToken('auth_token')->accessToken;
+
+        // Get user permissions from group rules
+        $permissions = [];
+        if ($user->group && $user->group->rules) {
+            $permissions = $user->group->rules->map(function ($rule) {
+                return [
+                    'resource' => $rule->resource,
+                    'action' => $rule->action,
+                    'name' => $rule->name,
+                ];
+            })->toArray();
+        }
 
         return response()->json([
             'message' => 'Login successful',
             'user' => $user,
+            'permissions' => $permissions,
             'access_token' => $token,
             'token_type' => 'Bearer',
         ]);
@@ -81,8 +101,23 @@ class AuthController extends Controller
      */
     public function user(Request $request)
     {
+        $user = $request->user()->load(['group.rules']);
+
+        // Get user permissions from group rules
+        $permissions = [];
+        if ($user->group && $user->group->rules) {
+            $permissions = $user->group->rules->map(function ($rule) {
+                return [
+                    'resource' => $rule->resource,
+                    'action' => $rule->action,
+                    'name' => $rule->name,
+                ];
+            })->toArray();
+        }
+
         return response()->json([
-            'user' => $request->user(),
+            'user' => $user,
+            'permissions' => $permissions,
         ]);
     }
 }

@@ -42,7 +42,7 @@ const UserForm = ({ visible, onClose, onSubmit, user }: UserFormProps) => {
   useEffect(() => {
     if (visible) {
       fetchGroups()
-      
+
       if (user) {
         setFormData({
           name: user.name,

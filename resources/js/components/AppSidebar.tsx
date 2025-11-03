@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
   CCloseButton,
   CSidebar,
@@ -14,10 +14,16 @@ import { setSidebarShow, setSidebarUnfoldable } from '../store/slices/sidebarSli
 
 // sidebar nav config
 import navigation from '../_nav'
+import { filterNavByPermissions } from '../utils/permissions'
 
 const AppSidebar = () => {
   const dispatch = useAppDispatch()
   const { sidebarShow, sidebarUnfoldable } = useAppSelector((state) => state.sidebar)
+
+  // Filter navigation based on user permissions
+  const filteredNavigation = useMemo(() => {
+    return filterNavByPermissions(navigation)
+  }, []) // Re-calculate only when component mounts (permissions loaded)
 
   useEffect(() => {
     // Update CSS variables untuk wrapper padding
@@ -85,7 +91,7 @@ const AppSidebar = () => {
         </CSidebarBrand>
         <CCloseButton className="d-lg-none" dark onClick={() => dispatch(setSidebarShow(false))} />
       </CSidebarHeader>
-      <AppSidebarNav items={navigation} />
+      <AppSidebarNav items={filteredNavigation} />
       <CSidebarFooter className="border-top d-none d-lg-flex">
         <CSidebarToggler onClick={() => dispatch(setSidebarUnfoldable(!sidebarUnfoldable))} />
       </CSidebarFooter>

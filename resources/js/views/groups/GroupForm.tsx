@@ -15,7 +15,6 @@ import {
   CAlert,
 } from '@coreui/react'
 import { Group, GroupFormData } from '../../services/groupService'
-import { ruleService, Rule } from '../../services/ruleService'
 
 interface GroupFormProps {
   visible: boolean
@@ -29,46 +28,28 @@ const GroupForm = ({ visible, onClose, onSubmit, group }: GroupFormProps) => {
     name: '',
     description: '',
     is_active: true,
-    rule_ids: [],
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [rules, setRules] = useState<Rule[]>([])
-  const [loadingRules, setLoadingRules] = useState(false)
 
   useEffect(() => {
     if (visible) {
-      fetchRules()
       if (group) {
         setFormData({
           name: group.name,
           description: group.description || '',
           is_active: group.is_active,
-          rule_ids: group.rules?.map((r) => r.id) || [],
         })
       } else {
         setFormData({
           name: '',
           description: '',
           is_active: true,
-          rule_ids: [],
         })
       }
       setError('')
     }
   }, [visible, group])
-
-  const fetchRules = async () => {
-    try {
-      setLoadingRules(true)
-      const response = await ruleService.getRules(1, 100, '')
-      setRules(response.data)
-    } catch (err) {
-      console.error('Failed to fetch rules:', err)
-    } finally {
-      setLoadingRules(false)
-    }
-  }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -80,20 +61,6 @@ const GroupForm = ({ visible, onClose, onSubmit, group }: GroupFormProps) => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }))
-  }
-
-  const handleRuleToggle = (ruleId: number) => {
-    setFormData((prev) => {
-      const currentRules = prev.rule_ids || []
-      const newRules = currentRules.includes(ruleId)
-        ? currentRules.filter((id) => id !== ruleId)
-        : [...currentRules, ruleId]
-
-      return {
-        ...prev,
-        rule_ids: newRules,
-      }
-    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,7 +80,7 @@ const GroupForm = ({ visible, onClose, onSubmit, group }: GroupFormProps) => {
   }
 
   return (
-    <CModal visible={visible} onClose={onClose} backdrop="static" size="lg">
+    <CModal visible={visible} onClose={onClose} backdrop="static">
       <CModalHeader>
         <CModalTitle>{group ? 'Edit Group' : 'Add New Group'}</CModalTitle>
       </CModalHeader>
@@ -153,38 +120,9 @@ const GroupForm = ({ visible, onClose, onSubmit, group }: GroupFormProps) => {
               checked={formData.is_active}
               onChange={handleChange}
             />
-          </div>
-          <div className="mb-3">
-            <CFormLabel>Assigned Rules</CFormLabel>
-            {loadingRules ? (
-              <div className="text-center p-3">
-                <CSpinner size="sm" />
-              </div>
-            ) : (
-              <div
-                style={{
-                  maxHeight: '200px',
-                  overflowY: 'auto',
-                  border: '1px solid #d8dbe0',
-                  borderRadius: '4px',
-                  padding: '10px',
-                }}
-              >
-                {rules.length === 0 ? (
-                  <small className="text-muted">No rules available</small>
-                ) : (
-                  rules.map((rule) => (
-                    <CFormCheck
-                      key={rule.id}
-                      id={`rule-${rule.id}`}
-                      label={`${rule.name} (${rule.resource}:${rule.action})`}
-                      checked={formData.rule_ids?.includes(rule.id) || false}
-                      onChange={() => handleRuleToggle(rule.id)}
-                    />
-                  ))
-                )}
-              </div>
-            )}
+            <small className="text-muted">
+              Note: Assign rules to this group using the "Assign Rules" button in the groups table
+            </small>
           </div>
         </CModalBody>
         <CModalFooter>

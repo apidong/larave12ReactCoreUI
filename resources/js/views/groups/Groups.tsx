@@ -24,11 +24,22 @@ import {
   CFormInput,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPencil, cilTrash, cilPlus, cilSearch, cilCheckCircle, cilXCircle } from '@coreui/icons'
+import {
+  cilPencil,
+  cilTrash,
+  cilPlus,
+  cilSearch,
+  cilCheckCircle,
+  cilXCircle,
+  cilShieldAlt,
+} from '@coreui/icons'
 import { groupService, Group, GroupFormData } from '../../services/groupService'
 import GroupForm from './GroupForm'
+import { useNavigate } from 'react-router-dom'
+import { hasPermission } from '../../utils/permissions'
 
 const Groups = () => {
+  const navigate = useNavigate()
   const [groups, setGroups] = useState<Group[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -136,10 +147,12 @@ const Groups = () => {
           <CCard className="mb-4">
             <CCardHeader className="d-flex justify-content-between align-items-center">
               <strong>Group Management</strong>
-              <CButton color="primary" onClick={handleCreate}>
-                <CIcon icon={cilPlus} className="me-2" />
-                Add Group
-              </CButton>
+              {hasPermission('groups', 'create') && (
+                <CButton color="primary" onClick={handleCreate}>
+                  <CIcon icon={cilPlus} className="me-2" />
+                  Add Group
+                </CButton>
+              )}
             </CCardHeader>
             <CCardBody>
               {error && (
@@ -211,36 +224,54 @@ const Groups = () => {
                             </CBadge>
                           </CTableDataCell>
                           <CTableDataCell>
-                            <CButton
-                              color="info"
-                              variant="ghost"
-                              size="sm"
-                              className="me-2"
-                              onClick={() => handleEdit(group)}
-                              title="Edit Group"
-                            >
-                              <CIcon icon={cilPencil} />
-                            </CButton>
-                            <CButton
-                              color={group.is_active ? 'secondary' : 'success'}
-                              variant="ghost"
-                              size="sm"
-                              className="me-2"
-                              onClick={() => handleToggleStatus(group)}
-                              disabled={toggling === group.id}
-                              title={group.is_active ? 'Deactivate Group' : 'Activate Group'}
-                            >
-                              <CIcon icon={group.is_active ? cilXCircle : cilCheckCircle} />
-                            </CButton>
-                            <CButton
-                              color="danger"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteConfirm(group)}
-                              title="Delete Group"
-                            >
-                              <CIcon icon={cilTrash} />
-                            </CButton>
+                            {hasPermission('groups', 'update') && (
+                              <CButton
+                                color="primary"
+                                variant="ghost"
+                                size="sm"
+                                className="me-2"
+                                onClick={() => navigate(`/groups/${group.id}/rules`)}
+                                title="Assign Rules"
+                              >
+                                <CIcon icon={cilShieldAlt} />
+                              </CButton>
+                            )}
+                            {hasPermission('groups', 'update') && (
+                              <CButton
+                                color="info"
+                                variant="ghost"
+                                size="sm"
+                                className="me-2"
+                                onClick={() => handleEdit(group)}
+                                title="Edit Group"
+                              >
+                                <CIcon icon={cilPencil} />
+                              </CButton>
+                            )}
+                            {hasPermission('groups', 'update') && (
+                              <CButton
+                                color={group.is_active ? 'secondary' : 'success'}
+                                variant="ghost"
+                                size="sm"
+                                className="me-2"
+                                onClick={() => handleToggleStatus(group)}
+                                disabled={toggling === group.id}
+                                title={group.is_active ? 'Deactivate Group' : 'Activate Group'}
+                              >
+                                <CIcon icon={group.is_active ? cilXCircle : cilCheckCircle} />
+                              </CButton>
+                            )}
+                            {hasPermission('groups', 'delete') && (
+                              <CButton
+                                color="danger"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteConfirm(group)}
+                                title="Delete Group"
+                              >
+                                <CIcon icon={cilTrash} />
+                              </CButton>
+                            )}
                           </CTableDataCell>
                         </CTableRow>
                       ))
